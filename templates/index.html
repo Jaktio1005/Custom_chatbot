@@ -244,6 +244,96 @@
             position: absolute;
             left: -10px;
         }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            white-space: pre-line;
+        }
+
+        input:disabled, button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .history-message {
+            opacity: 0.8;
+            font-size: 0.95em;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .context-indicator {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+            margin: 10px 0;
+            background: rgba(0, 97, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .course-details {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .course-details h3 {
+            color: #0061ff;
+            margin: 0 0 15px 0;
+            font-size: 1.4em;
+        }
+
+        .course-details h4 {
+            color: #2d3748;
+            margin: 20px 0 10px 0;
+            font-size: 1.2em;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .course-details h5 {
+            color: #4a5568;
+            margin: 15px 0 8px 0;
+            font-size: 1.1em;
+        }
+
+        .course-description {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .course-curriculum {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .course-curriculum .lesson {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #fff;
+            border-radius: 4px;
+            border-left: 3px solid #0061ff;
+        }
+
+        .course-requirements ul,
+        .course-outcomes ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .course-requirements li,
+        .course-outcomes li {
+            margin: 8px 0;
+            color: #4a5568;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -253,17 +343,26 @@
             <p>Your AI guide to technical courses</p>
         </div>
         <div class="chat-messages" id="chat-messages">
+            {% if initialization_error %}
+            <div class="message-container bot-container">
+                <div class="message-label">System</div>
+                <div class="message bot-message error-message">
+                    {{ initialization_error }}
+                </div>
+            </div>
+            {% else %}
             <div class="message-container bot-container">
                 <div class="message-label">Assistant</div>
                 <div class="message bot-message">
                     👋 Hello! I'm your course assistant. I can help you explore our technical courses and answer any questions you have. Feel free to ask about specific courses or type "hi" to see all available courses!
                 </div>
             </div>
+            {% endif %}
         </div>
         <div class="input-container">
             <form class="input-form" id="chat-form">
-                <input type="text" id="question-input" placeholder="Type your message here..." required autocomplete="off">
-                <button type="submit">Send</button>
+                <input type="text" id="question-input" placeholder="Type your message here..." required autocomplete="off" {% if initialization_error %}disabled{% endif %}>
+                <button type="submit" {% if initialization_error %}disabled{% endif %}>Send</button>
             </form>
         </div>
     </div>
@@ -286,7 +385,7 @@
             return typingDiv;
         }
 
-        function addMessage(content, isUser = false) {
+        function addMessage(content, isUser = false, isHistory = false) {
             const container = document.createElement('div');
             container.className = `message-container ${isUser ? 'user-container' : 'bot-container'}`;
             
@@ -296,7 +395,7 @@
             container.appendChild(label);
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'} ${isHistory ? 'history-message' : ''}`;
             
             // Format course information if present
             if (!isUser && content.includes('Course')) {
@@ -311,18 +410,49 @@
         }
 
         function formatCourseContent(content) {
-            const courses = content.split(/\d+\./).filter(Boolean);
-            if (courses.length > 1) {
-                let html = '';
-                courses.forEach((course, index) => {
-                    const [title, ...description] = course.trim().split('\n');
-                    html += `
-                        <div class="course-card">
-                            <div class="course-title">${index + 1}. ${title}</div>
-                            <div class="course-description">${description.join('\n')}</div>
-                        </div>
-                    `;
+            // Check if the content contains course details
+            if (content.includes('Course:')) {
+                const sections = content.split('\n\n');
+                let html = '<div class="course-details">';
+                
+                sections.forEach(section => {
+                    if (section.startsWith('Course:')) {
+                        html += `<h3 class="course-title">${section.replace('Course:', '').trim()}</h3>`;
+                    } else if (section.startsWith('Description:')) {
+                        html += `<div class="course-description">${section.replace('Description:', '').trim()}</div>`;
+                    } else if (section.startsWith('Curriculum:')) {
+                        html += '<div class="course-curriculum"><h4>Curriculum</h4>';
+                        const lines = section.split('\n').slice(1);
+                        lines.forEach(line => {
+                            if (line.startsWith('Section:')) {
+                                html += `<h5>${line.replace('Section:', '').trim()}</h5>`;
+                            } else if (line.startsWith('-')) {
+                                html += `<div class="lesson">${line.trim()}</div>`;
+                            }
+                        });
+                        html += '</div>';
+                    } else if (section.startsWith('Requirements:')) {
+                        html += '<div class="course-requirements"><h4>Requirements</h4><ul>';
+                        const lines = section.split('\n').slice(1);
+                        lines.forEach(line => {
+                            if (line.trim()) {
+                                html += `<li>${line.replace('-', '').trim()}</li>`;
+                            }
+                        });
+                        html += '</ul></div>';
+                    } else if (section.startsWith('Learning Outcomes:')) {
+                        html += '<div class="course-outcomes"><h4>Learning Outcomes</h4><ul>';
+                        const lines = section.split('\n').slice(1);
+                        lines.forEach(line => {
+                            if (line.trim()) {
+                                html += `<li>${line.replace('-', '').trim()}</li>`;
+                            }
+                        });
+                        html += '</ul></div>';
+                    }
                 });
+                
+                html += '</div>';
                 return html;
             }
             return content;
