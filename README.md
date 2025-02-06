@@ -46,62 +46,6 @@ OPENAI_API_KEY=your_api_key_here
 ```
 ⚠️ **IMPORTANT**: Never commit your actual API key to git! The `.env` file is ignored by git for security.
 
-## Usage
-
-1. Start the Flask server:
-```bash
-python app.py
-```
-
-2. The server will run on `http://localhost:5002` with the following endpoints:
-
-### Chat Endpoint
-
-- **URL**: `/chat`
-- **Method**: `POST`
-- **Content-Type**: `application/json`
-- **Request Body**:
-```json
-{
-    "question": "Your question here"
-}
-```
-- **Success Response**:
-```json
-{
-    "answer": "The answer to your question",
-    "source_documents": [
-        {
-            "content": "Relevant content from source",
-            "source": "Source URL"
-        }
-    ]
-}
-```
-
-### Health Check Endpoint
-
-- **URL**: `/health`
-- **Method**: `GET`
-- **Success Response**:
-```json
-{
-    "status": "healthy"
-}
-```
-
-## Example Usage with curl
-
-```bash
-# Health check
-curl http://localhost:5002/health
-
-# Ask a question
-curl -X POST http://localhost:5002/chat \
-    -H "Content-Type: application/json" \
-    -d '{"question": "What technical courses are available?"}'
-```
-
 ## Project Structure
 
 - `app.py`: Flask application and API endpoints
@@ -110,31 +54,8 @@ curl -X POST http://localhost:5002/chat \
 - `.env.example`: Template for environment variables
 - `.env`: Environment variables (not tracked in git)
 
-## Error Handling
-
-The API includes comprehensive error handling for:
-- Missing or invalid input
-- API key configuration issues
-- Data loading and processing errors
-- Vector store initialization failures
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please open an issue in the GitHub repository. 
 
 
 
 
-create .env file and use your api key copy this:- OPENAI_API_KEY=your_api_key_here 
+
