@@ -36,10 +36,15 @@ source venv/bin/activate  # On Windows, use: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the project root and add your OpenAI API key:
+4. Set up your environment:
 ```bash
+cp .env.example .env
+```
+Then edit `.env` and add your OpenAI API key:
+```
 OPENAI_API_KEY=your_api_key_here
 ```
+⚠️ **IMPORTANT**: Never commit your actual API key to git! The `.env` file is ignored by git for security.
 
 ## Usage
 
@@ -48,7 +53,7 @@ OPENAI_API_KEY=your_api_key_here
 python app.py
 ```
 
-2. The server will run on `http://localhost:5000` with the following endpoints:
+2. The server will run on `http://localhost:5002` with the following endpoints:
 
 ### Chat Endpoint
 
@@ -89,10 +94,10 @@ python app.py
 
 ```bash
 # Health check
-curl http://localhost:5000/health
+curl http://localhost:5002/health
 
 # Ask a question
-curl -X POST http://localhost:5000/chat \
+curl -X POST http://localhost:5002/chat \
     -H "Content-Type: application/json" \
     -d '{"question": "What technical courses are available?"}'
 ```
@@ -102,6 +107,7 @@ curl -X POST http://localhost:5000/chat \
 - `app.py`: Flask application and API endpoints
 - `data_loader.py`: Data extraction and processing functionality
 - `requirements.txt`: Project dependencies
+- `.env.example`: Template for environment variables
 - `.env`: Environment variables (not tracked in git)
 
 ## Error Handling
