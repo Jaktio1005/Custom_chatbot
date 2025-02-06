@@ -133,3 +133,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For support, please open an issue in the GitHub repository. 
+
+
+
+
+create .env file and use your api key copy this:- OPENAI_API_KEY=your_api_key_here 
